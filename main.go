@@ -10,6 +10,8 @@ import (
 const filePath string = "statistica.bin"
 const confFilePath string = "conf.txt"
 
+var f FileHandler
+
 type Student struct {
 	LastName    [20]byte
 	Name        [20]byte
@@ -93,37 +95,46 @@ func (s Student) Print() {
 	fmt.Println("")
 }
 
-func main() {
-	var s Student
-	s.Name = [20]byte{'a', 'a', 'a', 'a', 'a'}
-	s.LastName = [20]byte{'b', 'b', 'b', 'b', 'b'}
-	s.Phone = [13]byte{'c', 'c', 'c', 'c', 'c'}
-	s.Email = [25]byte{'d', 'd', 'd', 'd', 'd'}
-	s.HasLaptop = byte('t')
-	s.SummerStage = byte('f')
-
-	a := s.Encode()
-
-	s.Name = [20]byte{'A', 'A', 'A', 'A', 'A'}
-	s.LastName = [20]byte{'B', 'B', 'B', 'B', 'B'}
-	s.Phone = [13]byte{'C', 'C', 'C', 'C', 'C'}
-	s.Email = [25]byte{'D', 'D', 'D', 'D', 'D'}
-	s.HasLaptop = byte('f')
-	s.SummerStage = byte('t')
-
-	f := NewFileHandler(filePath, confFilePath)
-	f.Path = filePath
-
-	f.Append(a)
-
-	b := s.Encode()
-	f.Append(b)
-
-	stu, err := f.GetAllStudents()
-	if err != nil {
+func init() {
+	f = NewFileHandler(filePath, confFilePath)
+	if err := f.GetNumOfStudents(); err != nil {
 		log.Fatal(err)
 	}
-	for _, a := range stu {
-		a.Print()
-	}
+}
+
+func main() {
+	// var s Student
+	// s.Name = [20]byte{'a', 'a', 'a', 'a', 'a'}
+	// s.LastName = [20]byte{'b', 'b', 'b', 'b', 'b'}
+	// s.Phone = [13]byte{'c', 'c', 'c', 'c', 'c'}
+	// s.Email = [25]byte{'d', 'd', 'd', 'd', 'd'}
+	// s.HasLaptop = byte('t')
+	// s.SummerStage = byte('f')
+
+	// a := s.Encode()
+
+	// s.Name = [20]byte{'A', 'A', 'A', 'A', 'A'}
+	// s.LastName = [20]byte{'B', 'B', 'B', 'B', 'B'}
+	// s.Phone = [13]byte{'C', 'C', 'C', 'C', 'C'}
+	// s.Email = [25]byte{'D', 'D', 'D', 'D', 'D'}
+	// s.HasLaptop = byte('f')
+	// s.SummerStage = byte('t')
+
+	// f := NewFileHandler(filePath, confFilePath)
+	// f.Path = filePath
+
+	// f.Append(a)
+
+	// b := s.Encode()
+	// f.Append(b)
+
+	// stu, err := f.GetAllStudents()
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// for _, a := range stu {
+	// 	a.Print()
+	// }
+
+	
 }
