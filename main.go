@@ -95,6 +95,7 @@ func (s Student) Print() {
 	fmt.Println("")
 }
 
+//initialize the file handler and get the number of students
 func init() {
 	f = NewFileHandler(filePath, confFilePath)
 	if err := f.GetNumOfStudents(); err != nil {
@@ -136,5 +137,4 @@ func main() {
 	// 	a.Print()
 	// }
 
-	
 }
