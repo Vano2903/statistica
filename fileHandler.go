@@ -15,6 +15,7 @@ type FileHandler struct {
 	NumOfStudents int
 }
 
+//"constructor"
 func NewFileHandler(path, confPath string) FileHandler {
 	var f FileHandler
 	f.ConfPath = confPath
@@ -22,6 +23,7 @@ func NewFileHandler(path, confPath string) FileHandler {
 	return f
 }
 
+//get the number of students from the configuration file
 func (f *FileHandler) GetNumOfStudents() error {
 	content, err := ioutil.ReadFile(f.ConfPath)
 	if err != nil {
@@ -35,8 +37,9 @@ func (f *FileHandler) GetNumOfStudents() error {
 	return nil
 }
 
+//write the number of students in the configuration file
 func (f FileHandler) UpdateNumOfStudents() error {
-	file, err := os.OpenFile(f.Path, os.O_WRONLY|os.O_CREATE, 0744)
+	file, err := os.OpenFile(f.ConfPath, os.O_WRONLY|os.O_CREATE, 0744)
 	if err != nil {
 		return err
 	}
@@ -48,6 +51,7 @@ func (f FileHandler) UpdateNumOfStudents() error {
 	return nil
 }
 
+//append a student in the file, also update the configuration file
 func (f *FileHandler) Append(b []byte) error {
 	file, err := os.OpenFile(f.Path, os.O_APPEND|os.O_WRONLY|os.O_CREATE, 0744)
 	if err != nil {
@@ -63,6 +67,7 @@ func (f *FileHandler) Append(b []byte) error {
 	return nil
 }
 
+//read from a file a record starting from an offset (int)
 func readNextBytes(file *os.File, recordSize, startFrom int) ([]byte, error) {
 	bytes := make([]byte, recordSize)
 
@@ -74,6 +79,7 @@ func readNextBytes(file *os.File, recordSize, startFrom int) ([]byte, error) {
 	return bytes, nil
 }
 
+//return a slice with all the students stored in the file
 func (f FileHandler) GetAllStudents() ([]Student, error) {
 	var students []Student
 	var temp Student
@@ -101,6 +107,5 @@ func (f FileHandler) GetAllStudents() ([]Student, error) {
 		}
 		students = append(students, s)
 	}
-
 	return students, nil
 }
