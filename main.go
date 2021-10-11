@@ -8,6 +8,7 @@ import (
 )
 
 const filePath string = "statistica.bin"
+const confFilePath string = "conf.txt"
 
 type Student struct {
 	LastName    [20]byte
@@ -110,7 +111,7 @@ func main() {
 	s.HasLaptop = byte('f')
 	s.SummerStage = byte('t')
 
-	f := NewFileHandler()
+	f := NewFileHandler(filePath, confFilePath)
 	f.Path = filePath
 
 	f.Append(a)
@@ -118,10 +119,11 @@ func main() {
 	b := s.Encode()
 	f.Append(b)
 
-	s, err := f.GetAllStudents()
+	stu, err := f.GetAllStudents()
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	s.Print()
+	for _, a := range stu {
+		a.Print()
+	}
 }
