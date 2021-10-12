@@ -3,16 +3,14 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
-	"io/ioutil"
 	"os"
-	"strconv"
 	"unsafe"
 )
 
 type FileHandler struct {
 	Path          string
 	ConfPath      string
-	NumOfStudents int
+	NumOfStudents uint32
 }
 
 //"constructor"
@@ -25,19 +23,20 @@ func NewFileHandler(path, confPath string) FileHandler {
 
 //get the number of students from the configuration file
 func (f *FileHandler) GetNumOfStudents() error {
-	//create the file if not exist and initialize it with 0
-	if _, err := os.Stat(f.ConfPath); os.IsNotExist(err) {
+	if _, err := os.Stat(f.Path); os.IsNotExist(err) {
 		f.UpdateNumOfStudents()
 		return nil
 	}
-	//read the config file
-	content, err := ioutil.ReadFile(f.ConfPath)
+
+	var temp uint32
+	file, err := os.Open(f.Path)
 	if err != nil {
 		return err
 	}
+	content, err := readNextBytes(file, int(unsafe.Sizeof(temp)), 0)
 
 	//convert the content of the file in int
-	f.NumOfStudents, err = strconv.Atoi(string(content))
+	f.NumOfStudents = binary.BigEndian.Uint32(content)
 	if err != nil {
 		return err
 	}
@@ -47,15 +46,19 @@ func (f *FileHandler) GetNumOfStudents() error {
 //write the number of students in the configuration file
 func (f FileHandler) UpdateNumOfStudents() error {
 	//open the file in write only and create if not exist
-	file, err := os.OpenFile(f.ConfPath, os.O_WRONLY|os.O_CREATE, 0744)
+	file, err := os.OpenFile(f.Path, os.O_WRONLY|os.O_CREATE, 0744)
 	if err != nil {
 		return err
 	}
 	//close the stream before the function returns
 	defer file.Close()
 
-	//write to the file the string convetion of the number of students and check the error
-	if _, err := file.WriteString(strconv.Itoa(f.NumOfStudents)); err != nil {
+	//convert the number of students in slice of byte
+	numStudentsBinary := make([]byte, 4)
+	binary.LittleEndian.PutUint32(numStudentsBinary, f.NumOfStudents)
+
+	//write the slice of byte in the file
+	if _, err := file.Write(numStudentsBinary); err != nil {
 		return err
 	}
 	return nil
@@ -96,33 +99,48 @@ func readNextBytes(file *os.File, recordSize, startFrom int) ([]byte, error) {
 	return bytes, nil
 }
 
-//return a slice with all the students stored in the file
-func (f FileHandler) GetAllStudents() ([]Student, error) {
-	var students []Student
-	//needed just for the sizeof
-	var temp Student
-	size := int(unsafe.Sizeof(temp))
-
+func (f FileHandler) GetStudent(recordNum int) (Student, error) {
+	var s Student
+	size := int(unsafe.Sizeof(s))
 	//open file
 	file, err := os.Open(f.Path)
 	if err != nil {
-		return nil, err
+		return Student{}, err
 	}
 	//the stream will close right before the function will return
 	defer file.Close()
 
-	for i := 0; i < f.NumOfStudents; i++ {
-		var s Student
-		data, err := readNextBytes(file, size, size*i)
+	var temp int32
+
+	data, err := readNextBytes(file, size, (size*recordNum)+int(unsafe.Sizeof(temp)))
+	if err != nil {
+		return Student{}, err
+	}
+	buffer := bytes.NewBuffer(data)
+	err = binary.Read(buffer, binary.BigEndian, &s)
+	if err != nil {
+		return Student{}, err
+	}
+	return s, nil
+}
+
+//return a slice with all the students stored in the file
+func (f FileHandler) GetAllStudents() ([]Student, error) {
+	var students []Student
+	f.GetNumOfStudents()
+	//needed just for the sizeof
+	var i int
+	for true {
+		s, err := f.GetStudent(i)
 		if err != nil {
-			return nil, err
-		}
-		buffer := bytes.NewBuffer(data)
-		err = binary.Read(buffer, binary.BigEndian, &s)
-		if err != nil {
-			return nil, err
+			return students, nil
 		}
 		students = append(students, s)
+		i++
 	}
 	return students, nil
+}
+
+func (f FileHandler) SearchByPhone(phone string) ([]Student, error) {
+	return nil, nil
 }

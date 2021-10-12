@@ -129,12 +129,13 @@ func main() {
 	// b := s.Encode()
 	// f.Append(b)
 
-	// stu, err := f.GetAllStudents()
-	// if err != nil {
-	// 	log.Fatal(err)
-	// }
-	// for _, a := range stu {
-	// 	a.Print()
-	// }
+	stu, err := f.GetAllStudents()
+	if err != nil {
+		log.Fatal(err)
+	}
+	for _, a := range stu {
+		a.Print()
+		fmt.Println("")
+	}
 
 }
