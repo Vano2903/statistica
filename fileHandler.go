@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/binary"
+	"errors"
 	"os"
 	"unsafe"
 )
@@ -127,7 +128,7 @@ func (f FileHandler) GetStudent(recordNum int) (Student, error) {
 //return a slice with all the students stored in the file
 func (f FileHandler) GetAllStudents() ([]Student, error) {
 	var students []Student
-	f.GetNumOfStudents()
+	//f.GetNumOfStudents()
 	//needed just for the sizeof
 	var i int
 	for true {
@@ -141,6 +142,42 @@ func (f FileHandler) GetAllStudents() ([]Student, error) {
 	return students, nil
 }
 
-func (f FileHandler) SearchByPhone(phone string) ([]Student, error) {
-	return nil, nil
+func (f FileHandler) SearchByPhone(phone string) (Student, error) {
+	type temp struct {
+		LastName [20]byte
+		Name     [20]byte
+	}
+	type temp2 struct {
+		Email       [25]byte
+		HasLaptop   byte
+		SummerStage byte
+	}
+	var s Student
+	var tempUint uint32
+	var i int
+	PhoneSize := int(unsafe.Sizeof([20]byte{}))
+	file, err := os.Open(f.Path)
+	if err != nil {
+		return Student{}, err
+	}
+	//the stream will close right before the function will return
+	defer file.Close()
+	for true {
+		var phoneByte []byte
+		if i == 0 {
+			phoneByte, err = readNextBytes(file, PhoneSize, int(unsafe.Sizeof(temp{}))+int(unsafe.Sizeof(tempUint)))
+		} else {
+			phoneByte, err = readNextBytes(file, PhoneSize, int(unsafe.Sizeof(temp2{}))+int(unsafe.Sizeof(temp{}))+int(unsafe.Sizeof(tempUint)))
+		}
+		if err != nil {
+			return Student{}, errors.New("phone number was not found")
+		}
+		if phone == string(phoneByte) {
+			
+			return s, nil
+		}
+
+		i++
+	}
+	return s, nil
 }
