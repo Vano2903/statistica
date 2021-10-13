@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"os"
+	"time"
 	"unsafe"
 )
 
@@ -141,36 +143,45 @@ func (f FileHandler) GetAllStudents() ([]Student, error) {
 }
 
 func (f FileHandler) SearchByPhone(phone string) (Student, error) {
-	type temp struct {
-		LastName [20]byte
-		Name     [20]byte
-	}
-	type temp2 struct {
-		Email       [25]byte
-		HasLaptop   byte
-		SummerStage byte
-	}
 	var s Student
 	var tempUint uint32
-	var i int
-	PhoneSize := int(unsafe.Sizeof([20]byte{}))
+
+	PhoneSize := int(unsafe.Sizeof(s.Phone))
+	first := int(unsafe.Sizeof(s.LastName)) + int(unsafe.Sizeof(s.Name)) + int(unsafe.Sizeof(tempUint))
+	others := int(unsafe.Sizeof(s.Email)) + int(unsafe.Sizeof(s.HasLaptop)) + int(unsafe.Sizeof(s.SummerStage)) + int(unsafe.Sizeof(s.LastName)) + int(unsafe.Sizeof(s.Name))
+
 	file, err := os.Open(f.Path)
 	if err != nil {
 		return Student{}, err
 	}
 	//the stream will close right before the function will return
 	defer file.Close()
+
+	var i int
 	for {
 		var phoneByte []byte
+		fmt.Println(i)
+		time.Sleep(time.Second)
 		if i == 0 {
-			phoneByte, err = readNextBytes(file, PhoneSize, int(unsafe.Sizeof(temp{})))
+			phoneByte, err = readNextBytes(file, PhoneSize, first)
 		} else {
-			phoneByte, err = readNextBytes(file, PhoneSize, int(unsafe.Sizeof(temp2{}))+int(unsafe.Sizeof(temp{}))+int(unsafe.Sizeof(tempUint)))
+			phoneByte, err = readNextBytes(file, PhoneSize, others*i)
 		}
+		phoneByte = bytes.Trim(phoneByte, string('\u0000'))
+		fmt.Println(phoneByte)
+
+		fmt.Println(string(phoneByte))
+		fmt.Println(phone)
 		if err != nil {
 			return Student{}, errors.New("phone number was not found")
 		}
 		if phone == string(phoneByte) {
+			s, err := f.GetStudent(i)
+			if err != nil {
+				return Student{}, err
+			}
+
+			fmt.Println("trovato")
 			return s, nil
 		}
 		i++
