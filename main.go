@@ -1,92 +1,15 @@
 package main
 
 import (
-	"bytes"
-	"encoding/gob"
 	"fmt"
 	"log"
 
-	"github.com/Vano2903/statistica-go/internal/pkg/fileHandler"
-	"github.com/Vano2903/statistica-go/internal/pkg/student"
+	"github.com/Vano2903/statistica/internal/pkg/fileHandler"
 )
 
 const filePath string = "statistica.bin"
 
 var f fileHandler.FileHandler
-
-//convert the student struct to slice of byte
-func (s student.Student) Encode() []byte {
-	var complete []byte
-	for _, b := range s.LastName {
-		complete = append(complete, b)
-	}
-	for _, b := range s.Name {
-		complete = append(complete, b)
-	}
-	for _, b := range s.Phone {
-		complete = append(complete, b)
-	}
-	for _, b := range s.Email {
-		complete = append(complete, b)
-	}
-	complete = append(complete, s.HasLaptop)
-	complete = append(complete, s.SummerStage)
-	return complete
-}
-
-//given a slice of byte it will try to convert it to the student struct
-func (s *student.Student) Decode(b []byte) error {
-	var buff bytes.Buffer
-	dec := gob.NewDecoder(&buff)
-	err := dec.Decode(&s)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-//print a student in a formatted way
-func (s student.Student) Print() {
-	fmt.Print("nome: ")
-	for _, a := range s.Name {
-		fmt.Print(string(a))
-	}
-	fmt.Println("")
-
-	fmt.Print("cognome: ")
-	for _, a := range s.LastName {
-		fmt.Print(string(a))
-	}
-	fmt.Println("")
-
-	fmt.Print("telefono: ")
-	for _, a := range s.Phone {
-		fmt.Print(string(a))
-	}
-	fmt.Println("")
-
-	fmt.Print("email: ")
-	for _, a := range s.Email {
-		fmt.Print(string(a))
-	}
-	fmt.Println("")
-
-	fmt.Print("ha un laptop: ")
-	if string(s.HasLaptop) == "t" {
-		fmt.Print("si")
-	} else {
-		fmt.Print("no")
-	}
-	fmt.Println("")
-
-	fmt.Print("ha fatto lo stage: ")
-	if string(s.SummerStage) == "t" {
-		fmt.Print("si")
-	} else {
-		fmt.Print("no")
-	}
-	fmt.Println("")
-}
 
 //initialize the file handler and get the number of students
 func init() {
@@ -98,26 +21,24 @@ func init() {
 
 func main() {
 	// var s Student
-	// s.Name = [20]byte{'a', 'a', 'a', 'a', 'a'}
-	// s.LastName = [20]byte{'b', 'b', 'b', 'b', 'b'}
-	// s.Phone = [13]byte{'c', 'c', 'c', 'c', 'c'}
-	// s.Email = [25]byte{'d', 'd', 'd', 'd', 'd'}
-	// s.HasLaptop = byte('t')
-	// s.SummerStage = byte('f')
-
-	// a := s.Encode()
 
 	// s.Name = [20]byte{'A', 'A', 'A', 'A', 'A'}
 	// s.LastName = [20]byte{'B', 'B', 'B', 'B', 'B'}
-	// s.Phone = [13]byte{'C', 'C', 'C', 'C', 'C'}
-	// s.Email = [25]byte{'D', 'D', 'D', 'D', 'D'}
+	// s.Phone = [13]byte{'0', '3', '5', '2', '3', '8', '2', '3', '4'}
+	// s.Email = [25]byte{'n', 'n', 'n', 'n', 'n'}
 	// s.HasLaptop = byte('f')
 	// s.SummerStage = byte('t')
 
-	// f := NewFileHandler(filePath, confFilePath)
-	// f.Path = filePath
+	// a := s.Encode()
 
 	// f.Append(a)
+
+	// s.Name = [20]byte{'a', 'a', 'a', 'a', 'a'}
+	// s.LastName = [20]byte{'b', 'b', 'b', 'b', 'b'}
+	// s.Phone = [13]byte{'3', '4', '7', '8', '2', '5', '7', '0', '7', '6'}
+	// s.Email = [25]byte{'d', 'd', 'd', 'd', 'd'}
+	// s.HasLaptop = byte('t')
+	// s.SummerStage = byte('f')
 
 	// b := s.Encode()
 	// f.Append(b)
@@ -130,4 +51,10 @@ func main() {
 		a.Print()
 		fmt.Println("")
 	}
+
+	s, err := f.SearchByPhone("3478257076")
+	if err != nil {
+		log.Fatal(err)
+	}
+	s.Print()
 }

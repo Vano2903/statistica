@@ -1,6 +1,4 @@
-package hash
-
-import "github.com/Vano2903/statistica-go/internal/pkg/fileHandler"
+package fileHandler
 
 /*
 type Path string
@@ -11,7 +9,7 @@ type FileHandler struct {
 }
 */
 
-func (file fileHandler.FileHandler) Hash_1(firstname, lastname string) int {
+func (file FileHandler) Hash_1(firstname, lastname string) int {
 	hashableString := firstname + lastname
 
 	var sum int
@@ -22,7 +20,7 @@ func (file fileHandler.FileHandler) Hash_1(firstname, lastname string) int {
 	return (sum / len(hashableString)) % int(file.NumOfStudents)
 }
 
-func (file fileHandler.FileHandler) Hash_2(firstname, lastname string) int {
+func (file FileHandler) Hash_2(firstname, lastname string) int {
 	hashableString := firstname + lastname
 
 	var sum int
@@ -33,7 +31,7 @@ func (file fileHandler.FileHandler) Hash_2(firstname, lastname string) int {
 	return sum % int(file.NumOfStudents)
 }
 
-func (file fileHandler.FileHandler) Hash_3(firstname, lastname string) int {
+func (file FileHandler) Hash_3(firstname, lastname string) int {
 	hashableString := firstname + lastname
 
 	var sum int
