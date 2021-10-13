@@ -5,23 +5,17 @@ import (
 	"encoding/gob"
 	"fmt"
 	"log"
+
+	"github.com/Vano2903/statistica-go/internal/pkg/fileHandler"
+	"github.com/Vano2903/statistica-go/internal/pkg/student"
 )
 
 const filePath string = "statistica.bin"
 
-var f FileHandler
-
-type Student struct {
-	LastName    [20]byte
-	Name        [20]byte
-	Phone       [13]byte
-	Email       [25]byte
-	HasLaptop   byte
-	SummerStage byte
-}
+var f fileHandler.FileHandler
 
 //convert the student struct to slice of byte
-func (s Student) Encode() []byte {
+func (s student.Student) Encode() []byte {
 	var complete []byte
 	for _, b := range s.LastName {
 		complete = append(complete, b)
@@ -41,7 +35,7 @@ func (s Student) Encode() []byte {
 }
 
 //given a slice of byte it will try to convert it to the student struct
-func (s *Student) Decode(b []byte) error {
+func (s *student.Student) Decode(b []byte) error {
 	var buff bytes.Buffer
 	dec := gob.NewDecoder(&buff)
 	err := dec.Decode(&s)
@@ -52,7 +46,7 @@ func (s *Student) Decode(b []byte) error {
 }
 
 //print a student in a formatted way
-func (s Student) Print() {
+func (s student.Student) Print() {
 	fmt.Print("nome: ")
 	for _, a := range s.Name {
 		fmt.Print(string(a))
@@ -96,7 +90,7 @@ func (s Student) Print() {
 
 //initialize the file handler and get the number of students
 func init() {
-	f = NewFileHandler(filePath)
+	f = fileHandler.NewFileHandler(filePath)
 	if err := f.GetNumOfStudents(); err != nil {
 		log.Fatal(err)
 	}
@@ -136,5 +130,4 @@ func main() {
 		a.Print()
 		fmt.Println("")
 	}
-
 }

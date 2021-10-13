@@ -1,4 +1,4 @@
-package main
+package fileHandler
 
 import (
 	"bytes"
@@ -6,6 +6,8 @@ import (
 	"errors"
 	"os"
 	"unsafe"
+
+	"github.com/Vano2903/statistica-go/internal/pkg/student"
 )
 
 type FileHandler struct {
@@ -98,13 +100,13 @@ func readNextBytes(file *os.File, recordSize, startFrom int) ([]byte, error) {
 	return bytes, nil
 }
 
-func (f FileHandler) GetStudent(recordNum int) (Student, error) {
-	var s Student
+func (f FileHandler) GetStudent(recordNum int) (student.Student, error) {
+	var s student.Student
 	size := int(unsafe.Sizeof(s))
 	//open file
 	file, err := os.Open(f.Path)
 	if err != nil {
-		return Student{}, err
+		return student.Student{}, err
 	}
 	//the stream will close right before the function will return
 	defer file.Close()
@@ -113,19 +115,19 @@ func (f FileHandler) GetStudent(recordNum int) (Student, error) {
 
 	data, err := readNextBytes(file, size, (size*recordNum)+int(unsafe.Sizeof(temp)))
 	if err != nil {
-		return Student{}, err
+		return student.Student{}, err
 	}
 	buffer := bytes.NewBuffer(data)
 	err = binary.Read(buffer, binary.BigEndian, &s)
 	if err != nil {
-		return Student{}, err
+		return student.Student{}, err
 	}
 	return s, nil
 }
 
 //return a slice with all the students stored in the file
-func (f FileHandler) GetAllStudents() ([]Student, error) {
-	var students []Student
+func (f FileHandler) GetAllStudents() ([]student.Student, error) {
+	var students []student.Student
 	//f.GetNumOfStudents()
 	//needed just for the sizeof
 	var i int
@@ -140,7 +142,7 @@ func (f FileHandler) GetAllStudents() ([]Student, error) {
 	return students, nil
 }
 
-func (f FileHandler) SearchByPhone(phone string) (Student, error) {
+func (f FileHandler) SearchByPhone(phone string) (student.Student, error) {
 	type temp struct {
 		LastName [20]byte
 		Name     [20]byte
@@ -150,13 +152,13 @@ func (f FileHandler) SearchByPhone(phone string) (Student, error) {
 		HasLaptop   byte
 		SummerStage byte
 	}
-	var s Student
+	var s student.Student
 	var tempUint uint32
 	var i int
 	PhoneSize := int(unsafe.Sizeof([20]byte{}))
 	file, err := os.Open(f.Path)
 	if err != nil {
-		return Student{}, err
+		return student.Student{}, err
 	}
 	//the stream will close right before the function will return
 	defer file.Close()
@@ -168,7 +170,7 @@ func (f FileHandler) SearchByPhone(phone string) (Student, error) {
 			phoneByte, err = readNextBytes(file, PhoneSize, int(unsafe.Sizeof(temp2{}))+int(unsafe.Sizeof(temp{}))+int(unsafe.Sizeof(tempUint)))
 		}
 		if err != nil {
-			return Student{}, errors.New("phone number was not found")
+			return student.Student{}, errors.New("phone number was not found")
 		}
 		if phone == string(phoneByte) {
 			return s, nil
