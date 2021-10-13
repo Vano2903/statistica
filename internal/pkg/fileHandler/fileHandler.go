@@ -4,9 +4,7 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
-	"fmt"
 	"os"
-	"time"
 	"unsafe"
 
 	"github.com/Vano2903/statistica/internal/pkg/student"
@@ -168,7 +166,7 @@ func (f FileHandler) SearchByPhone(phone string) (student.Student, error) {
 	//ammount of bytes to get to the first phone record in the file
 	first := int(unsafe.Sizeof(s.LastName)) + int(unsafe.Sizeof(s.Name)) + int(unsafe.Sizeof(tempUint))
 	//ammount of bytes from a phone record to another
-	others := int(unsafe.Sizeof(s.Email)) + int(unsafe.Sizeof(s.HasLaptop)) + int(unsafe.Sizeof(s.SummerStage)) + int(unsafe.Sizeof(s.LastName)) + int(unsafe.Sizeof(s.Name))
+	others := first + int(unsafe.Sizeof(student.Student{}))
 
 	//open the file stream
 	file, err := os.Open(f.Path)
@@ -181,8 +179,6 @@ func (f FileHandler) SearchByPhone(phone string) (student.Student, error) {
 	var i int
 	for {
 		var phoneByte []byte
-		fmt.Println(i)
-		time.Sleep(time.Second)
 		if i == 0 {
 			//first phone number
 			phoneByte, err = readNextBytes(file, PhoneSize, first)
@@ -192,10 +188,6 @@ func (f FileHandler) SearchByPhone(phone string) (student.Student, error) {
 		}
 		//remove all the unused bytes of the array
 		phoneByte = bytes.Trim(phoneByte, string('\u0000'))
-
-		fmt.Println(phoneByte)
-		fmt.Println(string(phoneByte))
-		fmt.Println(phone)
 
 		//check if its EOF
 		if err != nil {
@@ -210,7 +202,6 @@ func (f FileHandler) SearchByPhone(phone string) (student.Student, error) {
 				return student.Student{}, err
 			}
 
-			fmt.Println("trovato")
 			return s, nil
 		}
 		i++
