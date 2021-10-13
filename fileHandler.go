@@ -10,14 +10,12 @@ import (
 
 type FileHandler struct {
 	Path          string
-	ConfPath      string
 	NumOfStudents uint32
 }
 
 //"constructor"
-func NewFileHandler(path, confPath string) FileHandler {
+func NewFileHandler(path string) FileHandler {
 	var f FileHandler
-	f.ConfPath = confPath
 	f.Path = path
 	return f
 }
@@ -162,10 +160,10 @@ func (f FileHandler) SearchByPhone(phone string) (Student, error) {
 	}
 	//the stream will close right before the function will return
 	defer file.Close()
-	for true {
+	for {
 		var phoneByte []byte
 		if i == 0 {
-			phoneByte, err = readNextBytes(file, PhoneSize, int(unsafe.Sizeof(temp{}))+int(unsafe.Sizeof(tempUint)))
+			phoneByte, err = readNextBytes(file, PhoneSize, int(unsafe.Sizeof(temp{})))
 		} else {
 			phoneByte, err = readNextBytes(file, PhoneSize, int(unsafe.Sizeof(temp2{}))+int(unsafe.Sizeof(temp{}))+int(unsafe.Sizeof(tempUint)))
 		}
@@ -173,11 +171,8 @@ func (f FileHandler) SearchByPhone(phone string) (Student, error) {
 			return Student{}, errors.New("phone number was not found")
 		}
 		if phone == string(phoneByte) {
-			
 			return s, nil
 		}
-
 		i++
 	}
-	return s, nil
 }

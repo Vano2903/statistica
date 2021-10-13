@@ -8,7 +8,6 @@ import (
 )
 
 const filePath string = "statistica.bin"
-const confFilePath string = "conf.txt"
 
 var f FileHandler
 
@@ -97,7 +96,7 @@ func (s Student) Print() {
 
 //initialize the file handler and get the number of students
 func init() {
-	f = NewFileHandler(filePath, confFilePath)
+	f = NewFileHandler(filePath)
 	if err := f.GetNumOfStudents(); err != nil {
 		log.Fatal(err)
 	}
