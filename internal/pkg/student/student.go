@@ -38,7 +38,9 @@ func (s Student) Encode() []byte {
 //given a slice of byte it will try to convert it to the student struct
 func (s *Student) Decode(b []byte) error {
 	var buff bytes.Buffer
+	//create a decode
 	dec := gob.NewDecoder(&buff)
+	//decoding the slice of byte
 	err := dec.Decode(&s)
 	if err != nil {
 		return err
@@ -48,6 +50,8 @@ func (s *Student) Decode(b []byte) error {
 
 //print a student in a formatted way
 func (s Student) Print() {
+	//range is like a forEach and the variable "a" is a byte so we convert it to string and print it
+
 	fmt.Print("nome: ")
 	for _, a := range s.Name {
 		fmt.Print(string(a))
