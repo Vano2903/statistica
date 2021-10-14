@@ -11,9 +11,11 @@ import (
 
 const filePath string = "statistica.bin"
 
+//const collisionFilePath string = "collision.bin"
+
 var f fileHandler.FileHandler
 
-//initialize the file handler and get the number of students
+//initialize the files handler and get the number of records
 func init() {
 	f = fileHandler.NewFileHandler(filePath)
 	if err := f.GetNumOfStudents(); err != nil {
@@ -44,7 +46,7 @@ func main() {
 				fmt.Println("")
 			}
 		case "3":
-			fmt.Print("numero di telefon: ")
+			fmt.Print("numero di telefono: ")
 			phone := input.String()
 			s, err := f.SearchByPhone(phone)
 			if err != nil {
@@ -54,6 +56,16 @@ func main() {
 			}
 		case "4":
 			//! cerca per nome e cognome
+			fmt.Print("cognome: ")
+			lastname := input.String()
+			fmt.Print("nome: ")
+			name := input.String()
+			s, err := f.SearchByHash(lastname, name)
+			if err != nil {
+				fmt.Println(err.Error())
+			} else {
+				s.Print()
+			}
 		case "5":
 			fmt.Println("bye")
 			return

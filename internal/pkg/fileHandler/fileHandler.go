@@ -44,12 +44,12 @@ func (f *FileHandler) GetNumOfStudents() error {
 	//get the size of a uint32 and read this size from the start of the file
 	var temp uint32
 	content, err := readNextBytes(file, int(unsafe.Sizeof(temp)), 0)
-
-	//convert the content of the file in uint32
-	f.NumOfStudents = binary.BigEndian.Uint32(content)
 	if err != nil {
 		return err
 	}
+
+	//convert the content of the file in uint32
+	f.NumOfStudents = binary.BigEndian.Uint32(content)
 	return nil
 }
 
@@ -118,11 +118,11 @@ func (f FileHandler) GetStudent(recordNum int) (student.Student, error) {
 	size := int(unsafe.Sizeof(s))
 	//open file
 	file, err := os.Open(f.Path)
+	//the stream will close right before the function will return
+	defer file.Close()
 	if err != nil {
 		return student.Student{}, err
 	}
-	//the stream will close right before the function will return
-	defer file.Close()
 
 	var temp int32
 
@@ -208,6 +208,44 @@ func (f FileHandler) SearchByPhone(phone string) (student.Student, error) {
 		}
 		i++
 	}
+}
+
+func (f FileHandler) SearchByHash(lastname, name string) (student.Student, error) {
+	archiveIndex := f.Hash_3(name, lastname)
+	newStudent, err := f.GetStudent(archiveIndex)
+	if err != nil {
+		return student.Student{}, err
+	}
+	//remove all unused bytes, convert the parameter records to string and check if its the same to the lastname and name given as argument
+	if string(bytes.Trim(newStudent.LastName[:], string('\u0000'))) == lastname && string(bytes.Trim(newStudent.Name[:], string('\u0000'))) == name {
+		return newStudent, nil
+	}
+
+	cf := NewFileHandler("collision.bin")
+	if err := cf.GetNumOfStudents(); err != nil {
+		return student.Student{}, err
+	}
+
+	//open the file stream
+	file, err := os.Open(cf.Path)
+	//the stream will close right before the function will return
+	defer file.Close()
+	if err != nil {
+		return student.Student{}, err
+	}
+
+	var collision struct {
+		collidedIndex int
+		newIndex      int
+	}
+	var tempUint uint32
+
+	recordBytes, err := readNextBytes(file, int(unsafe.Sizeof(collision)), int(unsafe.Sizeof(tempUint)))
+	if err != nil {
+		return student.Student{}, err
+	}
+
+	//TODO: unpackage recordBytes and search in mainArchive
 }
 
 func (f FileHandler) AddStudent() {
