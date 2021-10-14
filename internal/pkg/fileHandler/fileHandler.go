@@ -6,6 +6,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"strconv"
 	"unsafe"
 
 	"github.com/Vano2903/statistica/internal/pkg/student"
@@ -210,7 +211,7 @@ func (f FileHandler) SearchByPhone(phone string) (student.Student, error) {
 	}
 }
 
-func (f FileHandler) SearchByHash(lastname, name string) (student.Student, error) {
+func (f FileHandler) SearchByNames(lastname, name string) (student.Student, error) {
 	archiveIndex := f.Hash_3(name, lastname)
 	newStudent, err := f.GetStudent(archiveIndex)
 	if err != nil {
@@ -221,7 +222,7 @@ func (f FileHandler) SearchByHash(lastname, name string) (student.Student, error
 		return newStudent, nil
 	}
 
-	cf := NewFileHandler("collision.bin")
+	cf := NewFileHandler("collisions.bin")
 	if err := cf.GetNumOfStudents(); err != nil {
 		return student.Student{}, err
 	}
@@ -235,11 +236,6 @@ func (f FileHandler) SearchByHash(lastname, name string) (student.Student, error
 	}
 
 	for {
-		//check if its EOF
-		if err != nil {
-			return student.Student{}, errors.New("phone number was not found")
-		}
-
 		var collision struct {
 			collidedIndex uint16
 			newIndex      uint16
@@ -336,5 +332,96 @@ func (f FileHandler) AddStudent() {
 		}
 	}
 
-	f.Append(s.Encode())
+	//f.Append(s.Encode())
+	f.WriteStudent(s.Encode(), f.Hash_3(string(s.Name[:]), string(s.LastName[:])))
+}
+
+func (f *FileHandler) WriteStudent (b []byte, index int) (error){
+	//open file in read and write mode
+	file, err := os.OpenFile(f.Path, os.O_RDWR, 0744)
+	//the stream will close right before the function will return
+	defer file.Close()
+	if err != nil {
+		return err
+	}
+
+	//Check if the index position is a collision
+	var tempStudent student.Student
+	var tempUint uint32
+	recordBytes, err := readNextBytes(file, int(unsafe.Sizeof(tempStudent)), int(unsafe.Sizeof(tempUint))+int(unsafe.Sizeof(tempStudent))*index)
+	var isACollision bool
+	for _, byte := range recordBytes {
+		if byte != 0 {
+			isACollision = true
+			break
+		}
+	}
+
+	//write on the file at the index position
+	if isACollision == false {
+		_, err := file.WriteAt(b, int64(int(unsafe.Sizeof(tempUint))+int(unsafe.Sizeof(tempStudent))*index))
+		f.NumOfStudents++
+		f.UpdateNumOfStudents()
+		if err != nil {
+			return err
+		}
+	}
+
+	//find the first free record on the file
+	var freeRecord bool
+	for s := 0; s < int(f.NumOfStudents); s++ {
+		checkRecord, err := readNextBytes(file, int(unsafe.Sizeof(tempStudent)), int(unsafe.Sizeof(tempUint))+int(unsafe.Sizeof(tempStudent))*s)
+		if err != nil {
+			return err
+		}
+
+		freeRecord = true
+		for _, byte := range checkRecord {
+			if byte != 0 {
+				freeRecord = false
+				break
+			}
+		}
+
+		if freeRecord == false {
+			continue
+		}
+
+		//Write the student record on the file at new index
+		_, err = file.WriteAt(b, int64(int(unsafe.Sizeof(tempUint))+int(unsafe.Sizeof(tempStudent))*s))
+		f.NumOfStudents++
+		f.UpdateNumOfStudents()
+		if err != nil {
+			return err
+		}
+
+		//Generate the handler for the collisions file
+		cf := NewFileHandler("collisions.bin")
+		if err := cf.GetNumOfStudents(); err != nil {
+			return err
+		}
+		//open the file stream
+		collisionsFile, err := os.OpenFile(cf.Path, os.O_WRONLY|os.O_APPEND, 0744)
+		//the stream will close right before the function will return
+		defer collisionsFile.Close()
+		if err != nil {
+			return err
+		}
+
+		collidedIndex := []byte(strconv.Itoa(index))
+		newIndex := []byte(strconv.Itoa(s))
+		_, err = collisionsFile.Write(collidedIndex)
+		if err != nil {
+			return err
+		}
+		_, err = collisionsFile.Write(newIndex)
+		if err != nil {
+			return err
+		}
+		cf.NumOfStudents++
+		cf.UpdateNumOfStudents()
+		return nil
+	}
+
+	return fmt.Errorf("archivio pieno: impossibile salvare un nuovo dato")
 }

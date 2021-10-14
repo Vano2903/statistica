@@ -60,7 +60,7 @@ func main() {
 			lastname := input.String()
 			fmt.Print("nome: ")
 			name := input.String()
-			s, err := f.SearchByHash(lastname, name)
+			s, err := f.SearchByNames(lastname, name)
 			if err != nil {
 				fmt.Println(err.Error())
 			} else {
