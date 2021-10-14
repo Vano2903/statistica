@@ -7,10 +7,10 @@ import (
 )
 
 type Student struct {
-	LastName    [20]byte
-	Name        [20]byte
+	LastName    [30]byte
+	Name        [30]byte
 	Phone       [13]byte
-	Email       [25]byte
+	Email       [50]byte
 	HasLaptop   byte
 	SummerStage byte
 }
@@ -18,10 +18,10 @@ type Student struct {
 //convert the student struct to slice of byte
 func (s Student) Encode() []byte {
 	var complete []byte
-	for _, b := range s.Name {
+	for _, b := range s.LastName {
 		complete = append(complete, b)
 	}
-	for _, b := range s.LastName {
+	for _, b := range s.Name {
 		complete = append(complete, b)
 	}
 	for _, b := range s.Phone {

@@ -4,10 +4,12 @@ import (
 	"bytes"
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"os"
 	"unsafe"
 
 	"github.com/Vano2903/statistica/internal/pkg/student"
+	"github.com/Vano2903/statistica/internal/pkg/utils/input"
 )
 
 type FileHandler struct {
@@ -206,4 +208,76 @@ func (f FileHandler) SearchByPhone(phone string) (student.Student, error) {
 		}
 		i++
 	}
+}
+
+func (f FileHandler) AddStudent() {
+	var s student.Student
+
+	for {
+		fmt.Printf("nome dello studente [%d]: ", len(s.Name))
+		name := input.String()
+		if len(name) <= len(s.Name) {
+			copy(s.Name[:], name)
+			break
+		} else {
+			fmt.Printf("\nnome troppo lungo, massimo %d caratteri\n", len(s.Name))
+		}
+	}
+
+	for {
+		fmt.Printf("cognome dello studente [%d]: ", len(s.LastName))
+		lastName := input.String()
+		if len(lastName) <= len(s.LastName) {
+			copy(s.LastName[:], lastName)
+			break
+		} else {
+			fmt.Printf("\ncognome troppo lungo, massimo %d caratteri\n", len(s.LastName))
+		}
+	}
+
+	for {
+		fmt.Printf("telefono dello studente [%d]: ", len(s.Phone))
+		phone := input.String()
+		if len(phone) <= len(s.Phone) {
+			copy(s.Phone[:], phone)
+			break
+		} else {
+			fmt.Printf("\ntelefono troppo lungo, massimo %d caratteri\n", len(s.Phone))
+		}
+	}
+
+	for {
+		fmt.Printf("email dello studente [%d]: ", len(s.Email))
+		email := input.String()
+		if len(email) <= len(s.Email) {
+			copy(s.Email[:], email)
+			break
+		} else {
+			fmt.Printf("\nemail troppo lungo, massimo %d caratteri\n", len(s.Email))
+		}
+	}
+
+	for {
+		fmt.Print("ha un laptop [t/f]: ")
+		laptop := input.String()
+		if laptop == "t" || laptop == "f" {
+			s.HasLaptop = laptop[0]
+			break
+		} else {
+			fmt.Println("\nil valore inserito non é accettato, usa t (true) f (false)")
+		}
+	}
+
+	for {
+		fmt.Print("ha fatto lo stage [t/f]: ")
+		stage := input.String()
+		if stage == "t" || stage == "f" {
+			s.SummerStage = stage[0]
+			break
+		} else {
+			fmt.Println("\nil valore inserito non é accettato, usa t (true) f (false)")
+		}
+	}
+
+	f.Append(s.Encode())
 }

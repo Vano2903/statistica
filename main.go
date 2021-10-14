@@ -5,6 +5,8 @@ import (
 	"log"
 
 	"github.com/Vano2903/statistica/internal/pkg/fileHandler"
+	"github.com/Vano2903/statistica/internal/pkg/utils/clear"
+	"github.com/Vano2903/statistica/internal/pkg/utils/input"
 )
 
 const filePath string = "statistica.bin"
@@ -19,7 +21,48 @@ func init() {
 	}
 }
 
+func menu() {
+	for {
+		clear.Clear()
+		fmt.Println("STATISTICA - VANONCINI && MORANDI")
+		fmt.Println("1] aggiungi uno studente")
+		fmt.Println("2] visualizza tutti gli studenti")
+		fmt.Println("3] cerca uno studente per telefono")
+		fmt.Println("4] cerca uno studente per nome e cognome")
+		fmt.Println("5] esci dal programma")
+		choice := input.String()
+		switch choice {
+		case "1":
+			f.AddStudent()
+		case "2":
+			stu, err := f.GetAllStudents()
+			if err != nil {
+				log.Fatal(err)
+			}
+			for _, a := range stu {
+				a.Print()
+				fmt.Println("")
+			}
+		case "3":
+			fmt.Print("numero di telefon: ")
+			phone := input.String()
+			s, err := f.SearchByPhone(phone)
+			if err != nil {
+				fmt.Println(err.Error())
+			} else {
+				s.Print()
+			}
+		case "4":
+			//! cerca per nome e cognome
+		case "5":
+			fmt.Println("bye")
+			return
+		}
+	}
+}
+
 func main() {
+	menu()
 	// var s Student
 
 	// s.Name = [20]byte{'A', 'A', 'A', 'A', 'A'}
@@ -43,18 +86,9 @@ func main() {
 	// b := s.Encode()
 	// f.Append(b)
 
-	stu, err := f.GetAllStudents()
-	if err != nil {
-		log.Fatal(err)
-	}
-	for _, a := range stu {
-		a.Print()
-		fmt.Println("")
-	}
-
-	s, err := f.SearchByPhone("3478257076")
-	if err != nil {
-		log.Fatal(err)
-	}
-	s.Print()
+	// s, err := f.SearchByPhone("3478257076")
+	// if err != nil {
+	// 	log.Fatal(err)
+	// }
+	// s.Print()
 }
