@@ -234,18 +234,37 @@ func (f FileHandler) SearchByHash(lastname, name string) (student.Student, error
 		return student.Student{}, err
 	}
 
-	var collision struct {
-		collidedIndex int
-		newIndex      int
-	}
-	var tempUint uint32
+	for {
+		//check if its EOF
+		if err != nil {
+			return student.Student{}, errors.New("phone number was not found")
+		}
 
-	recordBytes, err := readNextBytes(file, int(unsafe.Sizeof(collision)), int(unsafe.Sizeof(tempUint)))
-	if err != nil {
-		return student.Student{}, err
-	}
+		var collision struct {
+			collidedIndex uint16
+			newIndex      uint16
+		}
+		var tempUint uint32
 
-	//TODO: unpackage recordBytes and search in mainArchive
+		recordBytes, err := readNextBytes(file, int(unsafe.Sizeof(collision)), int(unsafe.Sizeof(tempUint)))
+		if err != nil {
+			return student.Student{}, err
+		}
+		collision.collidedIndex = binary.BigEndian.Uint16(recordBytes[:len(recordBytes)/2])
+		collision.newIndex = binary.BigEndian.Uint16(recordBytes[:len(recordBytes)/2])
+
+		if collision.collidedIndex != uint16(archiveIndex) {
+			continue
+		}
+		checkStudent, err := f.GetStudent(int(collision.newIndex))
+		if err != nil {
+			return student.Student{}, err
+		}
+		//remove all unused bytes, convert the parameter records to string and check if its the same to the lastname and name given as argument
+		if string(bytes.Trim(checkStudent.LastName[:], string('\u0000'))) == lastname && string(bytes.Trim(checkStudent.Name[:], string('\u0000'))) == name {
+			return checkStudent, nil
+		}
+	}
 }
 
 func (f FileHandler) AddStudent() {
